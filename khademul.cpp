@@ -132,5 +132,31 @@ int main() {
 		return 0;
 	}
 	eventId = trim(eventId);
-	//trimLastNewLines(eventId);
 	earthquake.setId(eventId);
+
+    if(!getline(fp, line)) {
+		printLog("Error in Header File: Date Time Row Missing");
+		return 0;
+	}
+	line = trim(line);
+
+	char *dateStr = strtok(stringToCharPtr(line), " \r\n");
+	if (dateStr == NULL) {
+		printLog("Error in Header File: Date Error");
+		return 0;
+	}
+	char *timeStr = strtok(NULL, " \r\n");
+	if (timeStr == NULL) {
+		printLog("Error in Header File: Time Error");
+		exit(1);
+	}
+	char *timezoneStr = strtok(NULL, " \r\n");
+	string timezone;
+	if (timezoneStr == NULL) {
+		printLog("Error in Header File: Timezone Error");
+		exit(1);
+	}
+	if(strlen(timezoneStr)!=3) {
+		printLog("Error in Header File: Timezone Format Error");
+		exit(1);
+	}
