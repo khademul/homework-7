@@ -110,25 +110,12 @@ int main() {
 	string line;
 	char strTmp[256];
 	char inputFilePath[1024];
-	//size_t len = 0;
-	//ssize_t read;
-    printf("Input File: ");
+	
+    printf("Enter Input File name: ");
 	std::cin>>inputFilePath;
-	//strcpy(inputFilePath,"in2.txt");
-
-
-	/*fpLog = fopen("earthquake.log", "w");
-	if(fpLog==NULL) {
-		printf("Unable to open earthquake.log. Check permission\n");
-		exit(1);
-	}*/
-	fpLog = openFileWriteMode("earthquake.log");
-
-
+	fpLog = openFileWriteMode("khademul.log");
 	sprintf(strTmp, "Opening file:%s",inputFilePath);
 	printLog(strTmp);
-
-	//FILE *fp = fopen(inputFilePath, "r");
 	std::ifstream fp(inputFilePath);
 	if (!fp.is_open()) {
 		printLog("Input file not exist");
