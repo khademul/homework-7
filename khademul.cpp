@@ -415,3 +415,30 @@ int main() {
 		}
 		entryNumber++;
 	}
+    sprintf(strTmp,"Total invalid entries ignored: %d",invalidCount);
+	printLog(strTmp);
+	sprintf(strTmp,"Total valid entries read: %d",validEntryCount);
+	printLog(strTmp);
+	sprintf(strTmp,"Total signal names produced: %d",totalSignalNames);
+	printLog(strTmp);
+
+	fprintf(fpOut,"%d\n",totalSignalNames);
+	for(int i=0;i<totalSignalNames;i++) {
+		fprintf(fpOut,"%s.%s.%s.%c%c%c\n",
+				stringToCharPtr(earthquake.getId()),
+				stationInfos[i].getNetworkCodeString(),
+				stringToCharPtr(stationInfos[i].getStationCode()),
+				stationInfos[i].getTypeOfBand(),
+				stationInfos[i].getTypeOfInstrument(),
+				stationInfos[i].getOrientation()
+				);
+	}
+
+	//fclose(fp);
+	fclose(fpLog);
+	fclose(fpOut);
+	//if(line) {
+		//free(line);
+	//}
+	return 0;
+}
