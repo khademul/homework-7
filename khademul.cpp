@@ -325,3 +325,66 @@ int main() {
 			//continue;
 		}
 		//strcpy(stationInfo.stationCode,stationCode);
+    stationInfo.setStationCode(stationCode);
+
+		char *typeOfBand = strtok(NULL," ");
+		if(isEqualCI(typeOfBand,"Long-period")) {
+			stationInfo.setTypeOfBand(LongPeriod);
+		} else if(isEqualCI(typeOfBand,"Short-period")) {
+			stationInfo.setTypeOfBand(ShortPeriod);
+		} else if(isEqualCI(typeOfBand,"Broadband")) {
+			stationInfo.setTypeOfBand(Broadband);
+		} else {
+			sprintf(strTmp, "Entry #%3d ignored. Invalid band type.",entryNumber);
+			printLog(strTmp);
+			//invalidCount++;
+			//continue;
+			isValidRow=0;
+		}
+		char *typeOfInstrument = strtok(NULL," ");
+		if(isEqualCI(typeOfInstrument,"High-Gain")) {
+			stationInfo.setTypeOfInstrument(HighGain);
+		} else if(isEqualCI(typeOfInstrument,"Low-Gain")) {
+			stationInfo.setTypeOfInstrument(LowGain);
+		} else if(isEqualCI(typeOfInstrument,"Accelerometer")) {
+			stationInfo.setTypeOfInstrument(Accelerometer);
+		} else {
+			sprintf(strTmp, "Entry #%3d ignored. Invalid type of instrument.",entryNumber);
+			printLog(strTmp);
+			//invalidCount++;
+			//continue;
+			isValidRow=0;
+		}
+		char *orientation = strtok(NULL," ");
+		isValid=1;
+		if(strlen(orientation)>3) {
+			isValid=0;
+		} else {
+			if(orientation[0]>='0' && orientation[0]<='9') {
+				for(unsigned int i=0;i<strlen(orientation);i++) {
+					if(orientation[i]<'0' || orientation[i]>'3') {
+						isValid=0;
+					}
+				}
+			} else {
+				for(unsigned int i=0;i<strlen(orientation);i++) {
+					switch(orientation[i]) {
+					case 'N':
+					case 'n':
+					case 'E':
+					case 'e':
+					case 'Z':
+					case 'z':
+						break;
+					default:
+						isValid=0;
+					}
+					/*
+					if((orientation[i]>='A' && orientation[i]<='Z') || (orientation[i]>='a' && orientation[i]<='z')) {
+
+					} else {
+						isValid=0;
+					}*/
+				}
+			}
+		}
