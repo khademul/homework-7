@@ -245,4 +245,20 @@ int main() {
 		printLog("Unable to open earthquake.out. Check permission");
 		exit(1);
 	}*/
-	FILE *fpOut = openFileWriteMode("earthquake.out");
+	FILE *fpOut = openFileWriteMode("khademul.out");
+
+    const char* months[12] =
+	{
+		"January","February","March","April","May","June",
+		"July","August","September","October","November","December"
+	};
+	fprintf(fpOut, "# %.2d %s %d %.2d:%.2d:%.2d.%.3d %s %s %.1f %s [%s] (%.2f, %.2f, %.1f)\n",
+			earthquake.getDate().getDay(),months[earthquake.getDate().getMonth()],earthquake.getDate().getYear(),
+			earthquake.getTime().getHour(), earthquake.getTime().getMinute() , earthquake.getTime().getSecond() , earthquake.getTime().getMilisecond(),
+			stringToCharPtr(earthquake.getTimezone()),
+			earthquake.getMagnitudeTypeString(), earthquake.getMagnitudeSize(),
+			stringToCharPtr(earthquake.getEarthquakeName()), stringToCharPtr(earthquake.getId()),
+			earthquake.getEpicenter().getLongitude(), earthquake.getEpicenter().getLatitude(), earthquake.getEpicenter().getDepth());
+
+	Station stationInfos[300];
+
