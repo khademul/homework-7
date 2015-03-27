@@ -262,3 +262,16 @@ int main() {
 
 	Station stationInfos[300];
 
+    int entryNumber=1;
+	int invalidCount=0;
+	int validEntryCount=0;
+	int totalSignalNames=0;
+	while(getline(fp, line)) {
+		line = trim(line);
+		if(validEntryCount>300) {
+			continue;
+		}
+		int isValidRow=1;
+		//trimLastNewLines(line);
+
+		//printf("%s\n", line.c_str());
