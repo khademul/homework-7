@@ -37,3 +37,37 @@ if(!isIntegerString(str)) {
 }
 return atoi(str);
 }
+int isFloatString(char *str) {
+for(unsigned int i=0; i<strlen(str); i++) {
+	if((str[i]>='0' && str[i]<='9') || str[i]=='.' || str[i]=='-' || str[i]=='+') {
+
+	} else {
+		return 0;
+	}
+}
+return 1;
+}
+
+float atof_h(char *str) {
+if(!isFloatString(str)) {
+	printLog("Error: Real Number Expected");
+	printLog(str);
+	exit(1);
+}
+return atof(str);
+}
+int isEqual(char *s1, const char *s2) {
+return strcmp(s1,s2)==0;
+}
+
+int isEqualCI(char *s1, const char *s2) {
+if(strlen(s1)!=strlen(s2)) {
+	return 0;
+}
+for(unsigned int i=0; i<strlen(s1); i++) {
+	if(tolower(s1[i])!=tolower(s2[i])) {
+		return 0;
+	}
+}
+return 1;
+}
