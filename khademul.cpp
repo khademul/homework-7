@@ -107,338 +107,305 @@ return writable;
 }
 
 int main() {
-	string line;
-	char strTmp[256];
-	char inputFilePath[1024];
+string line;
+char strTmp[256];
+char inputFilePath[1024];
 	
-    printf("Enter Input File name: ");
-	std::cin>>inputFilePath;
-	fpLog = openFileWriteMode("khademul.log");
-	sprintf(strTmp, "Opening file:%s",inputFilePath);
-	printLog(strTmp);
-	std::ifstream fp(inputFilePath);
-	if (!fp.is_open()) {
-		printLog("Input file not exist");
+printf("Enter Input File name: ");
+std::cin>>inputFilePath;
+fpLog = openFileWriteMode("khademul.log");
+sprintf(strTmp, "Opening file:%s",inputFilePath);
+printLog(strTmp);
+std::ifstream fp(inputFilePath);
+if (!fp.is_open()) {
+	printLog("Input file not exist");
+	exit(1);
+}
+Earthquake earthquake;
+Date date;
+Time time;
+
+printLog("Processing input...");
+string eventId;
+if(!getline(fp, eventId)) {
+	printLog("Error in Header File: No Event ID");
+	return 0;
+}
+eventId = trim(eventId);
+earthquake.setId(eventId);
+
+if(!getline(fp, line)) {
+	printLog("Error in Header File: Date Time Row Missing");
+	return 0;
+}
+line = trim(line);
+
+char *dateStr = strtok(stringToCharPtr(line), " \r\n");
+if (dateStr == NULL) {
+	printLog("Error in Header File: Date Error");
+	return 0;
+}
+char *timeStr = strtok(NULL, " \r\n");
+if (timeStr == NULL) {
+	printLog("Error in Header File: Time Error");
+	exit(1);
+}
+char *timezoneStr = strtok(NULL, " \r\n");
+string timezone;
+if (timezoneStr == NULL) {
+	printLog("Error in Header File: Timezone Error");
+	exit(1);
+}
+if(strlen(timezoneStr)!=3) {
+	printLog("Error in Header File: Timezone Format Error");
+	exit(1);
+}
+timezone = timezoneStr;
+earthquake.setTimezone(timezone);
+if ((dateStr[2]=='/' && dateStr[5]=='/') || (dateStr[2]=='-' && dateStr[5]=='-')) {
+	if(!date.setMonth( atoi_h(strtok(dateStr,"/-")) ) ) {
+		printLog("Invalid Month");
 		exit(1);
 	}
-    Earthquake earthquake;
-	Date date;
-	Time time;
+	date.setDay( atoi_h(strtok(NULL,"/-")) );
+	date.setYear( atoi_h(strtok(NULL,"/-")) );
+} else {
+	printLog("Error in Header File: Date format error");
+	exit(1);
+}
+if (timeStr[2]==':' && timeStr[5]==':' && timeStr[8]=='.') {
+	time.setHour( atoi_h(strtok(timeStr,":.")) );
+	time.setMinute( atoi_h(strtok(NULL,":.")) );
+	time.setSecond( atoi_h(strtok(NULL,":.")) );
+	time.setMilisecond( atoi_h(strtok(NULL,":.")) );
+} else {
+	printLog("Error in Header File: Time format error");
+	exit(1);
+}
+if(!date.isValidDate()) {
+	printLog("Error in Header File: Invalid date");
+	exit(1);
+}
+earthquake.setDate(date);
+if(!time.isValidTime()) {
+	printLog("Error in Header File: Invalid time");
+	exit(1);
+}
+earthquake.setTime(time);
 
-	printLog("Processing input...");
-	string eventId;
-	if(!getline(fp, eventId)) {
-		printLog("Error in Header File: No Event ID");
-		return 0;
-	}
-	eventId = trim(eventId);
-	earthquake.setId(eventId);
+string earthquakeName;
+if(!getline(fp,earthquakeName)) {
+	printLog("Error in Header File: Earthquake Name Missing");
+	exit(1);
+}
+earthquakeName = trim(earthquakeName);
+earthquake.setEarthquakeName(earthquakeName);
+if(!getline(fp,line)) {
+	printLog("Error in Header File: Latitude Longitude Line Missing");
+	exit(1);
+}
+line = trim(line);
+Epicenter epicenter;
+epicenter.setLongitude( atof_h(strtok(stringToCharPtr(line)," \r\n")) );
+epicenter.setLatitude( atof_h(strtok(NULL," \r\n")) );
+epicenter.setDepth( atof_h(strtok(NULL," \r\n")) );
+earthquake.setEpicenter(epicenter);
+char *magnitudeType = strtok(NULL," \r\n");
+earthquake.setMagnitudeSize( atof_h(strtok(NULL," \r\n")) );
 
-    if(!getline(fp, line)) {
-		printLog("Error in Header File: Date Time Row Missing");
-		return 0;
+if(isEqualCI(magnitudeType,"ml") || isEqualCI(magnitudeType,"ms") || isEqualCI(magnitudeType,"mb") || isEqualCI(magnitudeType,"mw")) {
+	magnitudeType[0] = toupper(magnitudeType[0]);
+	magnitudeType[1] = tolower(magnitudeType[1]);
+	if(isEqualCI(magnitudeType,"ml")) {
+		earthquake.setMagnitudeType(Ml);
 	}
+	else if(isEqualCI(magnitudeType,"ms")) {
+		earthquake.setMagnitudeType(Ms);
+	}
+	else if(isEqualCI(magnitudeType,"mb")) {
+		earthquake.setMagnitudeType(Mb);
+	}
+	else if(isEqualCI(magnitudeType,"mw")) {
+		earthquake.setMagnitudeType(Mw);
+	}
+} else {
+	printLog("Error in Header File: magnitude type error");
+	return 0;
+}
+if(earthquake.getMagnitudeSize()<0) {
+	printLog("Error in Header File: magnitude size should be positive number");
+	return 0;
+}
+printLog("Header read correctly!");
+
+FILE *fpOut = openFileWriteMode("khademul.out");
+
+const char* months[12] =
+{
+	"January","February","March","April","May","June",
+	"July","August","September","October","November","December"
+};
+fprintf(fpOut, "# %.2d %s %d %.2d:%.2d:%.2d.%.3d %s %s %.1f %s [%s] (%.2f, %.2f, %.1f)\n",
+		earthquake.getDate().getDay(),months[earthquake.getDate().getMonth()],earthquake.getDate().getYear(),
+		earthquake.getTime().getHour(), earthquake.getTime().getMinute() , earthquake.getTime().getSecond() , earthquake.getTime().getMilisecond(),
+		stringToCharPtr(earthquake.getTimezone()),
+		earthquake.getMagnitudeTypeString(), earthquake.getMagnitudeSize(),
+		stringToCharPtr(earthquake.getEarthquakeName()), stringToCharPtr(earthquake.getId()),
+		earthquake.getEpicenter().getLongitude(), earthquake.getEpicenter().getLatitude(), earthquake.getEpicenter().getDepth());
+
+Station stationInfos[300];
+
+int entryNumber=1;
+int invalidCount=0;
+int validEntryCount=0;
+int totalSignalNames=0;
+while(getline(fp, line)) {
 	line = trim(line);
+	if(validEntryCount>300) {
+		continue;
+	}
+	int isValidRow=1;
 
-	char *dateStr = strtok(stringToCharPtr(line), " \r\n");
-	if (dateStr == NULL) {
-		printLog("Error in Header File: Date Error");
-		return 0;
-	}
-	char *timeStr = strtok(NULL, " \r\n");
-	if (timeStr == NULL) {
-		printLog("Error in Header File: Time Error");
-		exit(1);
-	}
-	char *timezoneStr = strtok(NULL, " \r\n");
-	string timezone;
-	if (timezoneStr == NULL) {
-		printLog("Error in Header File: Timezone Error");
-		exit(1);
-	}
-	if(strlen(timezoneStr)!=3) {
-		printLog("Error in Header File: Timezone Format Error");
-		exit(1);
-	}
-    timezone = timezoneStr;
-	earthquake.setTimezone(timezone);
-	//int year,month,day,hour,minute,second,milisecond;
-	if ((dateStr[2]=='/' && dateStr[5]=='/') || (dateStr[2]=='-' && dateStr[5]=='-')) {
-		if(!date.setMonth( atoi_h(strtok(dateStr,"/-")) ) ) {
-			printLog("Invalid Month");
-			exit(1);
-		}
-		date.setDay( atoi_h(strtok(NULL,"/-")) );
-		date.setYear( atoi_h(strtok(NULL,"/-")) );
-	} else {
-		printLog("Error in Header File: Date format error");
-		exit(1);
-	}
-	if (timeStr[2]==':' && timeStr[5]==':' && timeStr[8]=='.') {
-		time.setHour( atoi_h(strtok(timeStr,":.")) );
-		time.setMinute( atoi_h(strtok(NULL,":.")) );
-		time.setSecond( atoi_h(strtok(NULL,":.")) );
-		time.setMilisecond( atoi_h(strtok(NULL,":.")) );
-	} else {
-		printLog("Error in Header File: Time format error");
-		exit(1);
-	}
-	if(!date.isValidDate()) {
-		printLog("Error in Header File: Invalid date");
-		exit(1);
-	}
-	earthquake.setDate(date);
-	if(!time.isValidTime()) {
-		printLog("Error in Header File: Invalid time");
-		exit(1);
-	}
-	earthquake.setTime(time);
-
-	string earthquakeName;
-	if(!getline(fp,earthquakeName)) {
-		printLog("Error in Header File: Earthquake Name Missing");
-		exit(1);
-	}
-	earthquakeName = trim(earthquakeName);
-	earthquake.setEarthquakeName(earthquakeName);
-    if(!getline(fp,line)) {
-		printLog("Error in Header File: Latitude Longitude Line Missing");
-		exit(1);
-	}
-	line = trim(line);
-    Epicenter epicenter;
-	epicenter.setLongitude( atof_h(strtok(stringToCharPtr(line)," \r\n")) );
-	epicenter.setLatitude( atof_h(strtok(NULL," \r\n")) );
-	epicenter.setDepth( atof_h(strtok(NULL," \r\n")) );
-	earthquake.setEpicenter(epicenter);
-	char *magnitudeType = strtok(NULL," \r\n");
-	earthquake.setMagnitudeSize( atof_h(strtok(NULL," \r\n")) );
-
-    if(isEqualCI(magnitudeType,"ml") || isEqualCI(magnitudeType,"ms") || isEqualCI(magnitudeType,"mb") || isEqualCI(magnitudeType,"mw")) {
-		magnitudeType[0] = toupper(magnitudeType[0]);
-		magnitudeType[1] = tolower(magnitudeType[1]);
-		if(isEqualCI(magnitudeType,"ml")) {
-			earthquake.setMagnitudeType(Ml);
-		}
-		else if(isEqualCI(magnitudeType,"ms")) {
-			earthquake.setMagnitudeType(Ms);
-		}
-		else if(isEqualCI(magnitudeType,"mb")) {
-			earthquake.setMagnitudeType(Mb);
-		}
-		else if(isEqualCI(magnitudeType,"mw")) {
-			earthquake.setMagnitudeType(Mw);
+Station stationInfo;
+	char *networkCode = strtok(stringToCharPtr(line)," ");
+	if(isEqual(networkCode,"CE") || isEqual(networkCode,"CI") || isEqual(networkCode,"FA")
+			|| isEqual(networkCode,"NP") || isEqual(networkCode,"WR")) {
+		if(isEqual(networkCode,"CE")) {
+			stationInfo.setNetworkCode(CE);
+		} else if (isEqual(networkCode,"CI") ) {
+			stationInfo.setNetworkCode(CI);
+		} else if (isEqual(networkCode,"FA") ) {
+			stationInfo.setNetworkCode(FA);
+		} else if (isEqual(networkCode,"NP") ) {
+			stationInfo.setNetworkCode(NP);
+		} else if (isEqual(networkCode,"WR") ) {
+			stationInfo.setNetworkCode(WR);
 		}
 	} else {
-		printLog("Error in Header File: magnitude type error");
-		return 0;
+		sprintf(strTmp, "Entry #%3d ignored. Invalid network.",entryNumber);
+		printLog(strTmp);
+		isValidRow=0;
 	}
-	if(earthquake.getMagnitudeSize()<0) {
-		printLog("Error in Header File: magnitude size should be positive number");
-		return 0;
-	}
-
-	printLog("Header read correctly!");
-
-	/*FILE *fpOut = fopen("earthquake.out", "w");
-	if(fpOut==NULL) {
-		printLog("Unable to open earthquake.out. Check permission");
-		exit(1);
-	}*/
-	FILE *fpOut = openFileWriteMode("khademul.out");
-
-    const char* months[12] =
-	{
-		"January","February","March","April","May","June",
-		"July","August","September","October","November","December"
-	};
-	fprintf(fpOut, "# %.2d %s %d %.2d:%.2d:%.2d.%.3d %s %s %.1f %s [%s] (%.2f, %.2f, %.1f)\n",
-			earthquake.getDate().getDay(),months[earthquake.getDate().getMonth()],earthquake.getDate().getYear(),
-			earthquake.getTime().getHour(), earthquake.getTime().getMinute() , earthquake.getTime().getSecond() , earthquake.getTime().getMilisecond(),
-			stringToCharPtr(earthquake.getTimezone()),
-			earthquake.getMagnitudeTypeString(), earthquake.getMagnitudeSize(),
-			stringToCharPtr(earthquake.getEarthquakeName()), stringToCharPtr(earthquake.getId()),
-			earthquake.getEpicenter().getLongitude(), earthquake.getEpicenter().getLatitude(), earthquake.getEpicenter().getDepth());
-
-	Station stationInfos[300];
-
-    int entryNumber=1;
-	int invalidCount=0;
-	int validEntryCount=0;
-	int totalSignalNames=0;
-	while(getline(fp, line)) {
-		line = trim(line);
-		if(validEntryCount>300) {
-			continue;
-		}
-		int isValidRow=1;
-		//trimLastNewLines(line);
-
-		//printf("%s\n", line.c_str());
-    Station stationInfo;
-		char *networkCode = strtok(stringToCharPtr(line)," ");
-		if(isEqual(networkCode,"CE") || isEqual(networkCode,"CI") || isEqual(networkCode,"FA")
-				|| isEqual(networkCode,"NP") || isEqual(networkCode,"WR")) {
-			if(isEqual(networkCode,"CE")) {
-				stationInfo.setNetworkCode(CE);
-			} else if (isEqual(networkCode,"CI") ) {
-				stationInfo.setNetworkCode(CI);
-			} else if (isEqual(networkCode,"FA") ) {
-				stationInfo.setNetworkCode(FA);
-			} else if (isEqual(networkCode,"NP") ) {
-				stationInfo.setNetworkCode(NP);
-			} else if (isEqual(networkCode,"WR") ) {
-				stationInfo.setNetworkCode(WR);
+char *stationCode = strtok(NULL," ");
+	int isValid=1;
+	if (strlen(stationCode)==3) {
+		for(int i=0;i<3;i++) {
+			if(stationCode[i]<'A' || stationCode[i]>'Z') {
+				isValid=0;
+				break;
 			}
-		} else {
-			sprintf(strTmp, "Entry #%3d ignored. Invalid network.",entryNumber);
-			printLog(strTmp);
-			isValidRow=0;
-			//invalidCount++;
-			//continue;
 		}
-		//strcpy(stationInfo.networkCode,networkCode);
-    char *stationCode = strtok(NULL," ");
-		int isValid=1;
-		if (strlen(stationCode)==3) {
-			for(int i=0;i<3;i++) {
-				if(stationCode[i]<'A' || stationCode[i]>'Z') {
+	} else if(strlen(stationCode)==5) {
+		for(int i=0;i<5;i++) {
+			if(stationCode[i]<'0' || stationCode[i]>'9') {
+				isValid=0;
+				break;
+			}
+		}
+	} else {
+		isValid=0;
+	}
+	if(isValid==0) {
+		sprintf(strTmp, "Entry #%3d ignored. Invalid station name.",entryNumber);
+		printLog(strTmp);
+		isValidRow=0;
+	}
+stationInfo.setStationCode(stationCode);
+
+	char *typeOfBand = strtok(NULL," ");
+	if(isEqualCI(typeOfBand,"Long-period")) {
+		stationInfo.setTypeOfBand(LongPeriod);
+	} else if(isEqualCI(typeOfBand,"Short-period")) {
+		stationInfo.setTypeOfBand(ShortPeriod);
+	} else if(isEqualCI(typeOfBand,"Broadband")) {
+		stationInfo.setTypeOfBand(Broadband);
+	} else {
+		sprintf(strTmp, "Entry #%3d ignored. Invalid band type.",entryNumber);
+		printLog(strTmp);
+		isValidRow=0;
+	}
+	char *typeOfInstrument = strtok(NULL," ");
+	if(isEqualCI(typeOfInstrument,"High-Gain")) {
+		stationInfo.setTypeOfInstrument(HighGain);
+	} else if(isEqualCI(typeOfInstrument,"Low-Gain")) {
+		stationInfo.setTypeOfInstrument(LowGain);
+	} else if(isEqualCI(typeOfInstrument,"Accelerometer")) {
+		stationInfo.setTypeOfInstrument(Accelerometer);
+	} else {
+		sprintf(strTmp, "Entry #%3d ignored. Invalid type of instrument.",entryNumber);
+		printLog(strTmp);
+		isValidRow=0;
+	}
+	char *orientation = strtok(NULL," ");
+	isValid=1;
+	if(strlen(orientation)>3) {
+		isValid=0;
+	} else {
+		if(orientation[0]>='0' && orientation[0]<='9') {
+			for(unsigned int i=0;i<strlen(orientation);i++) {
+				if(orientation[i]<'0' || orientation[i]>'3') {
 					isValid=0;
-					break;
 				}
 			}
-		} else if(strlen(stationCode)==5) {
-			for(int i=0;i<5;i++) {
-				if(stationCode[i]<'0' || stationCode[i]>'9') {
-					isValid=0;
-					break;
-				}
-			}
-		} else {
-			isValid=0;
-		}
-		if(isValid==0) {
-			sprintf(strTmp, "Entry #%3d ignored. Invalid station name.",entryNumber);
-			printLog(strTmp);
-			isValidRow=0;
-			//invalidCount++;
-			//continue;
-		}
-		//strcpy(stationInfo.stationCode,stationCode);
-    stationInfo.setStationCode(stationCode);
-
-		char *typeOfBand = strtok(NULL," ");
-		if(isEqualCI(typeOfBand,"Long-period")) {
-			stationInfo.setTypeOfBand(LongPeriod);
-		} else if(isEqualCI(typeOfBand,"Short-period")) {
-			stationInfo.setTypeOfBand(ShortPeriod);
-		} else if(isEqualCI(typeOfBand,"Broadband")) {
-			stationInfo.setTypeOfBand(Broadband);
-		} else {
-			sprintf(strTmp, "Entry #%3d ignored. Invalid band type.",entryNumber);
-			printLog(strTmp);
-			//invalidCount++;
-			//continue;
-			isValidRow=0;
-		}
-		char *typeOfInstrument = strtok(NULL," ");
-		if(isEqualCI(typeOfInstrument,"High-Gain")) {
-			stationInfo.setTypeOfInstrument(HighGain);
-		} else if(isEqualCI(typeOfInstrument,"Low-Gain")) {
-			stationInfo.setTypeOfInstrument(LowGain);
-		} else if(isEqualCI(typeOfInstrument,"Accelerometer")) {
-			stationInfo.setTypeOfInstrument(Accelerometer);
-		} else {
-			sprintf(strTmp, "Entry #%3d ignored. Invalid type of instrument.",entryNumber);
-			printLog(strTmp);
-			//invalidCount++;
-			//continue;
-			isValidRow=0;
-		}
-		char *orientation = strtok(NULL," ");
-		isValid=1;
-		if(strlen(orientation)>3) {
-			isValid=0;
-		} else {
-			if(orientation[0]>='0' && orientation[0]<='9') {
-				for(unsigned int i=0;i<strlen(orientation);i++) {
-					if(orientation[i]<'0' || orientation[i]>'3') {
-						isValid=0;
-					}
-				}
-			} else {
-				for(unsigned int i=0;i<strlen(orientation);i++) {
-					switch(orientation[i]) {
-					case 'N':
-					case 'n':
-					case 'E':
-					case 'e':
-					case 'Z':
-					case 'z':
-						break;
-					default:
-						isValid=0;
-					}
-					/*
-					if((orientation[i]>='A' && orientation[i]<='Z') || (orientation[i]>='a' && orientation[i]<='z')) {
-
-					} else {
-						isValid=0;
-					}*/
-				}
-			}
-		}
-    if(!isValid) {
-			sprintf(strTmp, "Entry #%3d ignored. Invalid orientation.",entryNumber);
-			printLog(strTmp);
-			//invalidCount++;
-			//continue;
-			isValidRow=0;
-		} else {
-
-		}
-		if(isValidRow==0){
-			invalidCount++;
 		} else {
 			for(unsigned int i=0;i<strlen(orientation);i++) {
-				if(totalSignalNames>=300) {
+				switch(orientation[i]) {
+				case 'N':
+				case 'n':
+				case 'E':
+				case 'e':
+				case 'Z':
+				case 'z':
 					break;
+				default:
+					isValid=0;
 				}
-				stationInfos[totalSignalNames].setNetworkCode( stationInfo.getNetworkCode() );
-				stationInfos[totalSignalNames].setStationCode( stationInfo.getStationCode() );
-				stationInfos[totalSignalNames].setOrientation( orientation[i] );
-				stationInfos[totalSignalNames].setTypeOfBand( stationInfo.getTypeOfBand() );
-				stationInfos[totalSignalNames].setTypeOfInstrument( stationInfo.getTypeOfInstrument() );
-				totalSignalNames++;
 			}
-			validEntryCount++;
 		}
-		entryNumber++;
 	}
-    sprintf(strTmp,"Total invalid entries ignored: %d",invalidCount);
-	printLog(strTmp);
-	sprintf(strTmp,"Total valid entries read: %d",validEntryCount);
-	printLog(strTmp);
-	sprintf(strTmp,"Total signal names produced: %d",totalSignalNames);
-	printLog(strTmp);
-
-	fprintf(fpOut,"%d\n",totalSignalNames);
-	for(int i=0;i<totalSignalNames;i++) {
-		fprintf(fpOut,"%s.%s.%s.%c%c%c\n",
-				stringToCharPtr(earthquake.getId()),
-				stationInfos[i].getNetworkCodeString(),
-				stringToCharPtr(stationInfos[i].getStationCode()),
-				stationInfos[i].getTypeOfBand(),
-				stationInfos[i].getTypeOfInstrument(),
-				stationInfos[i].getOrientation()
-				);
+if(!isValid) {
+		sprintf(strTmp, "Entry #%3d ignored. Invalid orientation.",entryNumber);
+		printLog(strTmp);
+		isValidRow=0;
+	} else {
 	}
-
-	//fclose(fp);
-	fclose(fpLog);
-	fclose(fpOut);
-	//if(line) {
-		//free(line);
-	//}
-	return 0;
+	if(isValidRow==0){
+		invalidCount++;
+	} else {
+		for(unsigned int i=0;i<strlen(orientation);i++) {
+			if(totalSignalNames>=300) {
+				break;
+			}
+			stationInfos[totalSignalNames].setNetworkCode( stationInfo.getNetworkCode() );
+			stationInfos[totalSignalNames].setStationCode( stationInfo.getStationCode() );
+			stationInfos[totalSignalNames].setOrientation( orientation[i] );
+			stationInfos[totalSignalNames].setTypeOfBand( stationInfo.getTypeOfBand() );
+			stationInfos[totalSignalNames].setTypeOfInstrument( stationInfo.getTypeOfInstrument() );
+			totalSignalNames++;
+		}
+		validEntryCount++;
+	}
+	entryNumber++;
+}
+sprintf(strTmp,"Total invalid entries ignored: %d",invalidCount);
+printLog(strTmp);
+sprintf(strTmp,"Total valid entries read: %d",validEntryCount);
+printLog(strTmp);
+sprintf(strTmp,"Total signal names produced: %d",totalSignalNames);
+printLog(strTmp);
+fprintf(fpOut,"%d\n",totalSignalNames);
+for(int i=0;i<totalSignalNames;i++) {
+	fprintf(fpOut,"%s.%s.%s.%c%c%c\n",
+			stringToCharPtr(earthquake.getId()),
+			stationInfos[i].getNetworkCodeString(),
+			stringToCharPtr(stationInfos[i].getStationCode()),
+			stationInfos[i].getTypeOfBand(),
+			stationInfos[i].getTypeOfInstrument(),
+			stationInfos[i].getOrientation()
+			);
+}
+fclose(fpLog);
+fclose(fpOut);
+	
+return 0;
 }
