@@ -22,18 +22,18 @@ void printLog(const char *strLog) {
 	fprintf(fpLog, "%s\r\n", strLog);
 }
 int isIntegerString(char *str) {
-	for(unsigned int i=0; i<strlen(str); i++) {
-		if((str[i]>='0' && str[i]<='9') || str[i]=='-' || str[i]=='+') {
-		} else {
-			return 0;
-		}
+for(unsigned int i=0; i<strlen(str); i++) {
+	if((str[i]>='0' && str[i]<='9') || str[i]=='-' || str[i]=='+') {
+	} else {
+		return 0;
 	}
-	return 1;
+}
+return 1;
 }
 int atoi_h(char *str) {
-	if(!isIntegerString(str)) {
-		printLog("Error: Integer Expected");
-		exit(1);
-	}
-	return atoi(str);
+if(!isIntegerString(str)) {
+	printLog("Error: Integer Expected");
+	exit(1);
+}
+return atoi(str);
 }
