@@ -206,3 +206,10 @@ int main() {
 		exit(1);
 	}
 	line = trim(line);
+    Epicenter epicenter;
+	epicenter.setLongitude( atof_h(strtok(stringToCharPtr(line)," \r\n")) );
+	epicenter.setLatitude( atof_h(strtok(NULL," \r\n")) );
+	epicenter.setDepth( atof_h(strtok(NULL," \r\n")) );
+	earthquake.setEpicenter(epicenter);
+	char *magnitudeType = strtok(NULL," \r\n");
+	earthquake.setMagnitudeSize( atof_h(strtok(NULL," \r\n")) );
