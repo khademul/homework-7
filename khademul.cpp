@@ -213,3 +213,36 @@ int main() {
 	earthquake.setEpicenter(epicenter);
 	char *magnitudeType = strtok(NULL," \r\n");
 	earthquake.setMagnitudeSize( atof_h(strtok(NULL," \r\n")) );
+
+    if(isEqualCI(magnitudeType,"ml") || isEqualCI(magnitudeType,"ms") || isEqualCI(magnitudeType,"mb") || isEqualCI(magnitudeType,"mw")) {
+		magnitudeType[0] = toupper(magnitudeType[0]);
+		magnitudeType[1] = tolower(magnitudeType[1]);
+		if(isEqualCI(magnitudeType,"ml")) {
+			earthquake.setMagnitudeType(Ml);
+		}
+		else if(isEqualCI(magnitudeType,"ms")) {
+			earthquake.setMagnitudeType(Ms);
+		}
+		else if(isEqualCI(magnitudeType,"mb")) {
+			earthquake.setMagnitudeType(Mb);
+		}
+		else if(isEqualCI(magnitudeType,"mw")) {
+			earthquake.setMagnitudeType(Mw);
+		}
+	} else {
+		printLog("Error in Header File: magnitude type error");
+		return 0;
+	}
+	if(earthquake.getMagnitudeSize()<0) {
+		printLog("Error in Header File: magnitude size should be positive number");
+		return 0;
+	}
+
+	printLog("Header read correctly!");
+
+	/*FILE *fpOut = fopen("earthquake.out", "w");
+	if(fpOut==NULL) {
+		printLog("Unable to open earthquake.out. Check permission");
+		exit(1);
+	}*/
+	FILE *fpOut = openFileWriteMode("earthquake.out");
