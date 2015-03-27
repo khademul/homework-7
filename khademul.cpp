@@ -388,3 +388,30 @@ int main() {
 				}
 			}
 		}
+    if(!isValid) {
+			sprintf(strTmp, "Entry #%3d ignored. Invalid orientation.",entryNumber);
+			printLog(strTmp);
+			//invalidCount++;
+			//continue;
+			isValidRow=0;
+		} else {
+
+		}
+		if(isValidRow==0){
+			invalidCount++;
+		} else {
+			for(unsigned int i=0;i<strlen(orientation);i++) {
+				if(totalSignalNames>=300) {
+					break;
+				}
+				stationInfos[totalSignalNames].setNetworkCode( stationInfo.getNetworkCode() );
+				stationInfos[totalSignalNames].setStationCode( stationInfo.getStationCode() );
+				stationInfos[totalSignalNames].setOrientation( orientation[i] );
+				stationInfos[totalSignalNames].setTypeOfBand( stationInfo.getTypeOfBand() );
+				stationInfos[totalSignalNames].setTypeOfInstrument( stationInfo.getTypeOfInstrument() );
+				totalSignalNames++;
+			}
+			validEntryCount++;
+		}
+		entryNumber++;
+	}
