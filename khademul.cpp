@@ -15,3 +15,9 @@ URL:https://github.com/khademul/homework-7
 
 using namespace std;
 
+FILE *fpLog = NULL;
+
+void printLog(const char *strLog) {
+	printf("%s\n", strLog);
+	fprintf(fpLog, "%s\r\n", strLog);
+}
