@@ -298,3 +298,30 @@ int main() {
 			//continue;
 		}
 		//strcpy(stationInfo.networkCode,networkCode);
+    char *stationCode = strtok(NULL," ");
+		int isValid=1;
+		if (strlen(stationCode)==3) {
+			for(int i=0;i<3;i++) {
+				if(stationCode[i]<'A' || stationCode[i]>'Z') {
+					isValid=0;
+					break;
+				}
+			}
+		} else if(strlen(stationCode)==5) {
+			for(int i=0;i<5;i++) {
+				if(stationCode[i]<'0' || stationCode[i]>'9') {
+					isValid=0;
+					break;
+				}
+			}
+		} else {
+			isValid=0;
+		}
+		if(isValid==0) {
+			sprintf(strTmp, "Entry #%3d ignored. Invalid station name.",entryNumber);
+			printLog(strTmp);
+			isValidRow=0;
+			//invalidCount++;
+			//continue;
+		}
+		//strcpy(stationInfo.stationCode,stationCode);
