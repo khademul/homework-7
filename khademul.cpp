@@ -121,3 +121,16 @@ int main() {
 		printLog("Input file not exist");
 		exit(1);
 	}
+    Earthquake earthquake;
+	Date date;
+	Time time;
+
+	printLog("Processing input...");
+	string eventId;
+	if(!getline(fp, eventId)) {
+		printLog("Error in Header File: No Event ID");
+		return 0;
+	}
+	eventId = trim(eventId);
+	//trimLastNewLines(eventId);
+	earthquake.setId(eventId);
