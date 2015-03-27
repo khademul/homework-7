@@ -201,3 +201,8 @@ int main() {
 	}
 	earthquakeName = trim(earthquakeName);
 	earthquake.setEarthquakeName(earthquakeName);
+    if(!getline(fp,line)) {
+		printLog("Error in Header File: Latitude Longitude Line Missing");
+		exit(1);
+	}
+	line = trim(line);
