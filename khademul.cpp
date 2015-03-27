@@ -71,3 +71,31 @@ for(unsigned int i=0; i<strlen(s1); i++) {
 }
 return 1;
 }
+void trimLastNewLines(char *str) {
+for(int i=strlen(str)-1; i>=0; i++) {
+	if(str[i]=='\r' || str[i]=='\n') {
+		str[i] = 0;
+	} else {
+		break;
+	}
+}
+}
+static inline std::string &ltrim(std::string &s) {
+s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+return s;
+}
+static inline std::string &rtrim(std::string &s) {
+s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+return s;
+}
+static inline std::string &trim(std::string &s) {
+return ltrim(rtrim(s));
+}
+FILE* openFileWriteMode(const char *filePath) {
+FILE *fp = fopen(filePath, "w");
+if(fp==NULL) {
+	printf("Unable to open %s. Check permission\n", filePath);
+	exit(1);
+}
+return fp;
+}
