@@ -99,3 +99,9 @@ if(fp==NULL) {
 }
 return fp;
 }
+char* stringToCharPtr(const std::string &str) {
+char * writable = new char[str.size() + 1];
+std::copy(str.begin(), str.end(), writable);
+writable[str.size()] = '\0';
+return writable;
+}
