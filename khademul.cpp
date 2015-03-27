@@ -160,3 +160,44 @@ int main() {
 		printLog("Error in Header File: Timezone Format Error");
 		exit(1);
 	}
+    timezone = timezoneStr;
+	earthquake.setTimezone(timezone);
+	//int year,month,day,hour,minute,second,milisecond;
+	if ((dateStr[2]=='/' && dateStr[5]=='/') || (dateStr[2]=='-' && dateStr[5]=='-')) {
+		if(!date.setMonth( atoi_h(strtok(dateStr,"/-")) ) ) {
+			printLog("Invalid Month");
+			exit(1);
+		}
+		date.setDay( atoi_h(strtok(NULL,"/-")) );
+		date.setYear( atoi_h(strtok(NULL,"/-")) );
+	} else {
+		printLog("Error in Header File: Date format error");
+		exit(1);
+	}
+	if (timeStr[2]==':' && timeStr[5]==':' && timeStr[8]=='.') {
+		time.setHour( atoi_h(strtok(timeStr,":.")) );
+		time.setMinute( atoi_h(strtok(NULL,":.")) );
+		time.setSecond( atoi_h(strtok(NULL,":.")) );
+		time.setMilisecond( atoi_h(strtok(NULL,":.")) );
+	} else {
+		printLog("Error in Header File: Time format error");
+		exit(1);
+	}
+	if(!date.isValidDate()) {
+		printLog("Error in Header File: Invalid date");
+		exit(1);
+	}
+	earthquake.setDate(date);
+	if(!time.isValidTime()) {
+		printLog("Error in Header File: Invalid time");
+		exit(1);
+	}
+	earthquake.setTime(time);
+
+	string earthquakeName;
+	if(!getline(fp,earthquakeName)) {
+		printLog("Error in Header File: Earthquake Name Missing");
+		exit(1);
+	}
+	earthquakeName = trim(earthquakeName);
+	earthquake.setEarthquakeName(earthquakeName);
