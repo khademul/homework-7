@@ -275,3 +275,26 @@ int main() {
 		//trimLastNewLines(line);
 
 		//printf("%s\n", line.c_str());
+    Station stationInfo;
+		char *networkCode = strtok(stringToCharPtr(line)," ");
+		if(isEqual(networkCode,"CE") || isEqual(networkCode,"CI") || isEqual(networkCode,"FA")
+				|| isEqual(networkCode,"NP") || isEqual(networkCode,"WR")) {
+			if(isEqual(networkCode,"CE")) {
+				stationInfo.setNetworkCode(CE);
+			} else if (isEqual(networkCode,"CI") ) {
+				stationInfo.setNetworkCode(CI);
+			} else if (isEqual(networkCode,"FA") ) {
+				stationInfo.setNetworkCode(FA);
+			} else if (isEqual(networkCode,"NP") ) {
+				stationInfo.setNetworkCode(NP);
+			} else if (isEqual(networkCode,"WR") ) {
+				stationInfo.setNetworkCode(WR);
+			}
+		} else {
+			sprintf(strTmp, "Entry #%3d ignored. Invalid network.",entryNumber);
+			printLog(strTmp);
+			isValidRow=0;
+			//invalidCount++;
+			//continue;
+		}
+		//strcpy(stationInfo.networkCode,networkCode);
