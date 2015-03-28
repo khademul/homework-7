@@ -118,7 +118,7 @@ sprintf(strTmp, "Opening file:%s",inputFilePath);
 printLog(strTmp);
 std::ifstream fp(inputFilePath);
 if (!fp.is_open()) {
-	printLog("Input file not exist");
+	printLog("Input file does not exist");
 	exit(1);
 }
 Earthquake earthquake;
